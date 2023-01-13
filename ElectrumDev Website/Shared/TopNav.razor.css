@@ -1,0 +1,178 @@
+﻿.NavBar {
+	z-index: 6;
+	display: flex;
+	position: fixed;
+	width: 100%;
+	padding: 5px 3%;
+	background-color: rgb(56, 56, 56, 0.5);
+	align-content: center;
+	justify-content: space-between;
+	vertical-align: central;
+	flex-wrap: wrap;
+}
+
+.icon {
+	height: 50px;
+	cursor: pointer;
+	padding-left: 3vw;
+}
+
+.NavArea {
+	display: flex;
+	margin: auto;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	padding-left: 5%;
+	padding-right: 5%;
+	width: 35%;
+}
+
+	.NavArea a {
+		font-size: 18px;
+		text-decoration: none;
+		color: white;
+		align-items: center;
+		padding: 4px 20px;
+		transition: 0.3s ease 0s;
+	}
+		.NavArea a:hover {
+			border-radius: 18px;
+			background-color: rgb(81, 81, 81, 0.90);
+		}
+
+
+.Contact {
+	color: white;
+	text-decoration: none;
+	font-size: 18px;
+	padding: 11px 16px;
+	background-color: rgb(43, 83, 212);
+	border-radius: 18px;
+	text-align: center;
+	vertical-align: central;
+	transition: 0.3s ease 0;
+}
+
+.Contact:hover {
+	color: black;
+	background-color: white;
+}
+
+.login {
+	border: none;
+	margin-left: 1%;
+	color: black;
+	text-decoration: none;
+	font-size: 18px;
+	padding: 11px 16px;
+	background-color: white;
+	transition: 0.3s ease 0s;
+	border-radius: 18px;
+	text-align: center;
+	vertical-align: central;
+}
+
+	.login:hover {
+		color: white;
+		background: -webkit-linear-gradient(rgb(25, 159, 222), #20e974);
+	}
+
+.Open-NavBar {
+	z-index: 6;
+	display: flex;
+	position: fixed;
+	width: 100%;
+	padding: 5px 3%;
+	background-color: rgb(56, 56, 56);
+	align-content: center;
+	justify-content: space-between;
+	vertical-align: central;
+	flex-wrap: wrap;
+}
+
+.Open-NavArea {
+	gap: 15px;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	margin: auto;
+	justify-content: space-between;
+	padding-left: 5%;
+	padding-right: 5%;
+	text-align: center;
+}
+
+	.Open-NavArea a {
+		font-size: 20px;
+		text-decoration: none;
+		color: white;
+		align-items: center;
+		padding: 10px;
+		width: 100%;
+		border-radius: 8px;
+		border: 2px rgb(81, 81, 81, 0.90)  solid;
+		transition: 0.3s ease 0s;
+	}
+
+		.Open-NavArea a:hover {
+			border-radius: 18px;
+			background-color: rgb(81, 81, 81, 0.90);
+		}
+
+.small-nav {
+	padding-top: 70px;
+	background-color: rgb(56, 56, 56);
+	position: fixed;
+	z-index: 5;
+	width: 100%;
+
+	border-bottom-left-radius: 18px;
+	border-bottom-right-radius: 18px;
+}
+
+.main-actions {
+	display: flex;
+	flex-direction: column;
+	margin-top: 1vh;
+	margin-bottom: 3vh;
+	padding: 50px;
+}
+
+.mini-contact {
+	font-weight: 600;
+	color: white;
+	text-decoration: none;
+	font-size: 22px;
+	padding: 15px;
+	background-color: rgb(43, 83, 212);
+	border-radius: 18px;
+	text-align: center;
+	vertical-align: central;
+	transition: 0.3s ease 0;
+	width: 100%;
+}
+
+	.mini-contact:hover {
+		color: black;
+		background-color: white;
+	}
+
+.mini-login {
+	margin-top: 1vh;
+	border: none;
+	color: black;
+	text-decoration: none;
+	font-size: 22px;
+	font-weight: 600;
+	padding: 15px;
+	background-color: white;
+	transition: 0.3s ease 0s;
+	border-radius: 18px;
+	text-align: center;
+	vertical-align: central;
+}
+
+	.mini-login:hover {
+		color: white;
+		background: -webkit-linear-gradient(rgb(25, 159, 222), #20e974);
+	}

@@ -1,0 +1,345 @@
+﻿@inject NavigationManager nav;
+@inject IJSRuntime JS;
+@inject ILocalStorageService storage;
+
+@inject Data.BrowserService BS;
+
+<div class="blog-page">
+	@if (Width > 960)
+	{
+		<div class="filter-zone">
+			<form @onsubmit="search_update">
+				<div class="search-container">
+					<input @bind="SearhValue" class="bar" placeholder="Search" />
+					<button class="icon"><i>  <img src="Images/search.png" /> </i></button>
+				</div>
+			</form>
+
+			<div class="tag-zone">
+				<span><p>Tag Filters</p></span>
+				<div class="tag-zone-zone">
+					<div class="tag-area">
+						@foreach (var tag in WebDB.Tags.Access.GetItems())
+						{
+							@if (TTagIDs.Contains(tag.id))
+							{
+								TempBools.TryAdd(tag.Tag, true);
+								<div class="blog-tag" style="background-color: @tag.Color; margin-top: 5px;">@tag.Tag<SwitchButton @bind-Checked="@TempBools[tag.Tag]" Style="height: 15px;" OnCheckValue="() => addTag(tag.id)" OnUncheckValue="() => remTag (tag.id)" Inverted="true"></SwitchButton></div>
+							}
+							else
+							{
+								<div class="blog-tag" style="background-color: @tag.Color; margin-top: 5px;">@tag.Tag<SwitchButton Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+							}
+						}
+					</div>
+
+				</div>
+			</div>
+			<div class="tag-zone">
+				<span><p>Date Filters</p></span>
+				<div class="tag-zone-zone">
+					<div class="tag-area">
+						<DateInput @bind-Value="StartDate" Style="width: 100%;"></DateInput>
+						<p>To</p>
+						<DateInput @bind-Value="EndDate" Style="width: 100%;"></DateInput>
+					</div>
+
+				</div>
+			</div>
+
+			<div class="button-zone">
+				<button @onclick="search_update" class="create-post" style="text-decoration: none; background: rgb(43, 83, 212);">
+					Update Filter
+					<i><img src="Images/Refresh.png" style="width: 25px;" /></i>
+				</button>
+
+				@if (isValidUser)
+				{
+					<a href="/Blog/Create" class="create-post" style="text-decoration: none; margin-top: 1%;">
+						Create Post
+						<i><img src="Images/add.svg" /></i>
+					</a>
+					<a href="/Blog/CreateTag" class="create-tag" style="text-decoration: none; margin-top: 1%;">
+						Create Tag
+						<i><img src="Images/add.svg" /></i>
+					</a>
+				}
+			</div>
+
+		</div>
+		<div class="post-zone">
+			<p>@message</p>
+			<Virtualize @ref="Vcomp" Context="PostID" ItemsProvider="UpdatePostsProvider">
+				<ChildContent>
+					<BlogPost PostID="@PostID" />
+				</ChildContent>
+
+				<Placeholder>
+					<BlogPost PostID="-1" />
+				</Placeholder>
+			</Virtualize>
+
+			<div style="text-align: center;">
+				<p>Dont see any posts? <button @onclick="ForceReload" style="border: none; color: rgb(43, 83, 212); background-color: transparent;">Reload the page.</button></p>
+			</div>
+		</div>
+	} else
+	{
+		@if (!MenuOpen)
+		{
+			<button @onclick="OpenCloseMenu" style="margin-top: 55px; float: left; border-radius: 18px; padding: 10px; background-color: rgb(69 69 69 / 0.60); border: none; position: fixed; z-index: 5;"><img style="width: 35px;" src="Images/Filter.png" /></button>
+		} else
+		{
+			<div class="mini-filter-zone" style="background-color: rgb(83 83 83 / 0.9); border-radius: 18px; padding: 10px; margin-top: 65px;">
+				<button @onclick="OpenCloseMenu" style="padding: 15px; color: black; border: none; background-color: white; border-radius: 19px; font-size: 22px; font-weight: 600;">Close</button>
+				<form @onsubmit="search_update">
+					<div class="search-container" style="margin-top: 10px;">
+						<input @bind="SearhValue" class="bar" placeholder="Search" />
+						<button class="icon"><i>  <img src="Images/search.png" /> </i></button>
+					</div>
+				</form>
+
+				<div class="tag-zone">
+					<span><p>Tag Filters</p></span>
+					<div class="tag-zone-zone">
+						<div class="tag-area">
+							@foreach (var tag in WebDB.Tags.Access.GetItems())
+							{
+								@if (TTagIDs.Contains(tag.id))
+								{
+									TempBools.TryAdd(tag.Tag, true);
+									<div class="blog-tag" style="background-color: @tag.Color; margin-top: 5px;">@tag.Tag<SwitchButton @bind-Checked="@TempBools[tag.Tag]" Style="height: 15px;" OnCheckValue="() => addTag(tag.id)" OnUncheckValue="() => remTag (tag.id)" Inverted="true"></SwitchButton></div>
+								}
+								else
+								{
+									<div class="blog-tag" style="background-color: @tag.Color; margin-top: 5px;">@tag.Tag<SwitchButton Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+								}
+							}
+						</div>
+
+					</div>
+				</div>
+				<div class="tag-zone">
+					<span><p>Date Filters</p></span>
+					<div class="tag-zone-zone">
+						<div class="tag-area">
+							<DateInput @bind-Value="StartDate" Style="width: 100%;"></DateInput>
+							<p>To</p>
+							<DateInput @bind-Value="EndDate" Style="width: 100%;"></DateInput>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="button-zone">
+					<button @onclick="search_update" class="create-post" style="text-decoration: none; background: rgb(43, 83, 212);">
+						Update Filter
+						<i><img src="Images/Refresh.png" style="width: 25px;" /></i>
+					</button>
+
+					@if (isValidUser)
+					{
+						<a href="/Blog/Create" class="create-post" style="text-decoration: none; margin-top: 1%;">
+							Create Post
+							<i><img src="Images/add.svg" /></i>
+						</a>
+						<a href="/Blog/CreateTag" class="create-tag" style="text-decoration: none; margin-top: 1%;">
+							Create Tag
+							<i><img src="Images/add.svg" /></i>
+						</a>
+					}
+				</div>
+
+			</div>
+		}
+
+		<div style="display: flex; flex-direction: column; margin-top: 7vh;">
+			<Virtualize @ref="Vcomp" Context="PostID" ItemsProvider="UpdatePostsProvider">
+				<ChildContent>
+					<BlogPost PostID="@PostID" />
+				</ChildContent>
+
+				<Placeholder>
+					<BlogPost PostID="-1" />
+				</Placeholder>
+			</Virtualize>
+		</div>
+		
+	}
+
+	
+</div>
+
+	
+
+
+
+@code {
+	private int ForumID = 1;
+	private List<int> BlogPostIDs = new List<int>();
+
+	public Virtualize<int> Vcomp;
+
+	private string message = "";
+
+	public int Height { get; set; }
+	public int Width { get; set; }
+
+	private bool MenuOpen = false;
+
+	private void OpenCloseMenu()
+	{
+		MenuOpen = !MenuOpen;
+	}
+
+	public static List<WebDB.Tags.Model> SelectedTags = new List<WebDB.Tags.Model>();
+
+	public static DateTime StartDate = (DateTime.Now).AddDays(-15);
+	public static DateTime EndDate = (DateTime.Today).AddDays(1);
+
+	Dictionary<string, bool> TempBools = new Dictionary<string, bool>();
+	List<int> TTagIDs = new List<int>();
+
+	public static string SearhValue = " ";
+
+	private void ForceReload()
+	{
+		nav.NavigateTo("/Blog", true);
+	}
+
+	private async void search_update()
+	{
+		await Vcomp.RefreshDataAsync();
+		StateHasChanged();
+	}
+
+	private bool isValidUser;
+	protected override async Task OnInitializedAsync()
+	{
+		if (await Data.WebData.ValidateUser(storage))
+		{
+			var user = await Data.WebData.GetCurrentUser(storage);
+			if (user.IsAdmin == "true")
+			{
+				isValidUser = true;
+			}
+		}
+
+		var dimension = await BS.GetDimensions();
+		Height = dimension.Height;
+		Width = dimension.Width;
+
+		foreach (var tag in WebDB.Tags.Access.GetItems())
+		{
+			TempBools.Add(tag.Tag, true);
+			TTagIDs.Add(tag.id);
+			SelectedTags.Add(tag);
+		}
+
+	}
+
+	private void addTag(int tagID)
+	{
+		Console.WriteLine("addTag called");
+
+		WebDB.Tags.Model Fitem;
+		foreach (var item in WebDB.Tags.Access.GetItems())
+		{
+			if (item.id == tagID)
+			{
+				Fitem = item;
+				SelectedTags.Add(Fitem);
+				Console.WriteLine("CurAdd: " + Fitem.Tag);
+				break;
+			}
+		}
+	}
+
+	private void remTag(int tagID)
+	{
+		Console.WriteLine("remTag called");
+
+		WebDB.Tags.Model Fitem;
+		foreach (var item in SelectedTags)
+		{
+			if (item.id == tagID)
+			{
+				Console.WriteLine("ContainsItemBefRem:" + SelectedTags.Contains(item));
+				SelectedTags.Remove(item);
+				Console.WriteLine("RemItem: " + item.Tag);
+				Console.WriteLine("ContainsItem:" + SelectedTags.Contains(item));
+				break;
+			}
+		}
+	}
+
+	public async ValueTask<ItemsProviderResult<int>> UpdatePostsProvider(ItemsProviderRequest request)
+	{
+
+		Console.WriteLine("\n\n\n\n GET UPDATED CALLED!!! \n\n\n\n");
+
+		List<int> TagIDs = new List<int>();
+		foreach (var tag in SelectedTags)
+		{
+			Console.WriteLine($"\nADDED TAG(id): {tag.id}");
+			TagIDs.Add(tag.id);
+		}
+
+		List<WebDB.BlogPosts.Model> Tposts = WebDB.BlogPosts.Access.GetByDate(StartDate, EndDate);
+		Console.WriteLine($"\n\n\nPosts found: {Tposts.Count()}\n\n\n");
+
+		List<int> ReturnIDs = new List<int>();
+
+		// Cycle through posts in Tposts (Posts with time filter)
+		foreach (var post in Tposts)
+		{
+			var PostTags = WebDB.BlogPostTags.Access.GetByPostID(post.id);
+			if (PostTags.Count() > 0)
+			{
+				foreach (var tag in PostTags)
+				{
+
+					Console.WriteLine($"\n\nChecked TAG: {tag.TagID}");
+
+					string titleLower = (post.Title).ToLower();
+					string bodyLower = (post.Body).ToLower();
+
+					string searchLower = SearhValue.ToLower();
+
+					if (TagIDs.Contains(tag.TagID) && (titleLower.Contains(searchLower) || bodyLower.Contains(searchLower)))
+					{
+						if (!ReturnIDs.Contains(post.id))
+						{
+							ReturnIDs.Add(post.id);
+						}
+					}
+					else
+					{
+						Console.WriteLine("PASS \n\n");
+					}
+				}
+			} else
+			{
+				if (!ReturnIDs.Contains(post.id))
+				{
+					ReturnIDs.Add(post.id);
+				}
+			}
+		}
+
+		foreach (var i in ReturnIDs)
+		{
+			Console.WriteLine(i);
+		}
+
+		ReturnIDs.Reverse();
+
+		return new ItemsProviderResult<int>(ReturnIDs, ReturnIDs.Count());
+	}
+
+	public async void UpdatePosts()
+	{
+		await Vcomp.RefreshDataAsync(); // Causes "Error: System.NullReferenceException: Object reference not set to an instance of an object."
+		StateHasChanged(); // Causes "Error: System.InvalidOperationException: The render handle is not yet assigned."
+	}
+}

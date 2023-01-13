@@ -1,0 +1,25 @@
+﻿h2 {
+	color:white;
+	font-weight: 500;
+	font-size: 36px;
+}
+
+h3 {
+	color: rgb(225, 225, 225);
+	font-weight: 500;
+	font-size: 26px;
+}
+
+
+.submit-form {
+	color: white;
+	font-size: 18px;
+	border-radius: 10px;
+	background-color: rgb(43, 83, 212);
+	padding: 13px 15px;
+	border: none;
+	margin-bottom: 8vh;
+}
+
+
+

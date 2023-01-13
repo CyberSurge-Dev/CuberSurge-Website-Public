@@ -1,0 +1,23 @@
+﻿h1 {
+	color: white;
+	font-size: 70px;
+	font-weight: 700;
+}
+
+h2 {
+	color: white;
+	font-size: 46px;
+	font-weight: 600;
+}
+
+h3 {
+	color: rgb(204, 204, 204);
+	font-size: 30px;
+	font-weight: 500;
+}
+li {
+	color: rgb(204, 204, 204);
+	font-size: 23px;
+	font-family: "Nunito", sans-serif;
+	font-weight: 600;
+}

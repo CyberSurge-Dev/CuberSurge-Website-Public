@@ -1,0 +1,170 @@
+﻿@page "/Blog/CreateTag"
+
+<PageTitle>CyberSurge -- Create Tag</PageTitle>
+
+@inject Blazored.LocalStorage.ILocalStorageService storage;
+@inject NavigationManager nav;
+@if (isValidUser)
+{
+	<div class="blur-box" style="margin: 5%; margin-bottom: 22vh;">
+		<h1 style="font-size: 46px; font-weight:700;"><em>Create/Delete Tags</em></h1>
+
+		<form @onsubmit="createTag">
+			<h2>Create tag</h2>
+			<h3>Name</h3>
+			<input @bind-value="NewTagName" class="inset-blur-box" style="color: white;" />
+			<h3>Color</h3>
+			<p>@NewTagName</p>
+			<p>@selectedColor</p>
+			<Smart.Blazor.ColorPicker DisplayMode="ColorDisplayMode.Palette" DropDownWidth="35px" DropDownHeight="15px" @bind-Value="@selectedColor"></Smart.Blazor.ColorPicker>
+			<button class="submit-form">Add tag</button>
+		</form>
+
+
+
+		<from @onsubmit="deleteTags">
+			<h2>Delete tags</h2>
+			<p style="font-size: 18px;">Select tags to delete</p>
+			<div class="tag-area">
+				@foreach (var tag in WebDB.Tags.Access.GetItems())
+				{
+					<div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag<SwitchButton Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+
+				}
+			</div>
+			<p>@getSelected()</p>
+			<p>@RemMessage</p>
+			<button @onclick="deleteTags" class="submit-form">Delete selected</button>
+		</from>
+	</div>
+} else
+{
+	<p style="margin-bottom: 100vh;">This page is not avilable for regular users, please <a href="/" style="text-decoration: none;">Return to the main page.</a></p>
+}
+
+
+@code {
+	private string AddMessage = "-";
+	private string RemMessage = "-";
+
+	private string NewTagName = "";
+
+	private List<WebDB.Tags.Model> SelectedTags = new List<WebDB.Tags.Model>();
+
+	private string selectedColor = "";
+	string disp = "";
+
+	private bool isValidUser;
+	protected override async Task OnInitializedAsync()
+	{
+		if (await Data.WebData.ValidateUser(storage))
+		{
+			var user = await Data.WebData.GetCurrentUser(storage);
+			if (user.IsAdmin == "true")
+			{
+				isValidUser = true;
+			}
+
+
+		}
+	}
+
+	private void createTag()
+	{
+
+		if (NewTagName != "" || selectedColor != "")
+		{
+			List<WebDB.Tags.Model> curTags = WebDB.Tags.Access.GetItems();
+			bool isValid = true;
+
+			foreach (var tag in curTags)
+			{
+				if (tag.Tag == NewTagName || tag.Color == selectedColor)
+				{
+					isValid = false;
+					Console.WriteLine("Regtag" + tag.Tag);
+					Console.WriteLine("RegColor" + tag.Color);
+				}
+			}
+
+			if (isValid)
+			{
+				var newTag = new WebDB.Tags.Model();
+				newTag.Tag = NewTagName;
+				newTag.Color = selectedColor;
+
+				WebDB.Tags.Access.Add(newTag);
+				AddMessage = "Tag added.";
+
+				//nav.NavigateTo("/Blog/CreateTag", true);
+			}
+			else
+			{
+				Console.WriteLine(isValid);
+				AddMessage = "Add tag opperation failed. Values: " + NewTagName + ", " + selectedColor;
+
+			}
+		} else
+		{
+			AddMessage = "Please fill all fields.";
+		}
+
+	}
+
+	private void remTag(int tagID)
+	{
+		WebDB.Tags.Model Fitem;
+		foreach (var item in SelectedTags)
+		{
+			if (item.id == tagID)
+			{
+				Console.WriteLine("ContainsItemBefRem:" + SelectedTags.Contains(item));
+				SelectedTags.Remove(item);
+				Console.WriteLine("RemItem: " + item.Tag);
+				Console.WriteLine("ContainsItem:" + SelectedTags.Contains(item));
+				getSelected();
+				break;
+			}
+		}
+	}
+
+	private void addTag(int tagID)
+	{
+		WebDB.Tags.Model Fitem;
+		foreach (var item in WebDB.Tags.Access.GetItems())
+		{
+			if (item.id == tagID)
+			{
+				Fitem = item;
+				SelectedTags.Add(Fitem);
+				Console.WriteLine("CurAdd: " + Fitem.Tag);
+				getSelected();
+				break;
+			}
+		}
+	}
+
+	private void deleteTags()
+	{
+		foreach (var tag in SelectedTags)
+		{
+			WebDB.Tags.Access.RemoveById(tag.id);
+			Console.WriteLine("Removed: " + tag.Tag);
+
+		}
+		SelectedTags = new List<WebDB.Tags.Model>();
+		nav.NavigateTo("/Blog/CreateTag", true);
+	}
+
+	private string getSelected()
+	{
+		string ret = "";
+		foreach (var i in SelectedTags)
+		{
+			ret += i.Tag + ", ";
+		}
+		Console.WriteLine("rets: " + ret);
+		return ret;
+		
+	}
+}

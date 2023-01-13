@@ -1,0 +1,111 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService storage;
+@inject NavigationManager nav;
+@inject IJSRuntime JS;
+
+@inject Data.BrowserService BS;
+
+
+@if (Width > 960) {
+	<nav class="NavBar">
+		<a href="/">
+			<img class="icon" src="Images/quarklogo.png" />
+		</a>
+		<div class="NavArea">
+			<a href="/AboutMe"> About me</a>
+			<a href="/Blog"> Blog</a>
+			<a href="/Docs">Docs</a>
+		</div>
+		<a class="Contact" href="/Contact">Contact</a>
+		@if (!isLoggedIn)
+		{
+				<a class="login" href="/LogIn">Login</a>
+		}
+		else
+		{
+				<button class="login" @onclick="LogOut">Log out</button>
+		}
+	</nav>
+} else
+{
+	@if (!MenuOpen)
+	{
+		<nav class="NavBar">
+			<a href="/">
+				<img class="icon" src="Images/quarklogo.png" />
+			</a>
+
+			<button style="background-color:transparent; border: none;" @onclick="OpenCloseMenu"><img src="Images/Menu.png" /></button>
+		</nav>
+	} else
+	{
+		<div>
+			<nav class="Open-NavBar">
+				<a href="/">
+					<img class="icon" src="Images/quarklogo.png" />
+				</a>
+
+				<button style="background-color:transparent; border: none;" @onclick="OpenCloseMenu"><img src="Images/Menu.png" /></button>
+			</nav>
+			<div class="small-nav">
+				<div class="Open-NavArea">
+					<a @onclick="OpenCloseMenu" href="/AboutMe"> About me</a>
+					<a @onclick="OpenCloseMenu" href="/Blog"> Blog</a>
+					<a @onclick="OpenCloseMenu" href="/Docs">Docs</a>
+				</div>
+				<div class="main-actions">
+					<a @onclick="OpenCloseMenu" class="mini-contact" href="/Contact">Contact</a>
+					@if (!isLoggedIn)
+					{
+						<a @onclick="OpenCloseMenu" class="mini-login" href="/LogIn">Login</a>
+					}
+					else
+					{
+						<button class="mini-login" @onclick="LogOut">Log out</button>
+					}
+				</div>
+			</div>
+		</div>
+		
+		
+	}
+
+}
+
+
+@code {
+	private bool isLoggedIn;
+
+	public int Height { get; set; }
+	public int Width { get; set; }
+
+	private bool MenuOpen = false;
+
+	private void OpenCloseMenu()
+	{
+		MenuOpen = !MenuOpen;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		if ((await storage.GetItemAsync<string>("UserPasswordEncrypted") == null) || (await storage.GetItemAsync<string>("UserUsername") == null))
+		{
+			await storage.SetItemAsStringAsync("UserPasswordEncrypted", Data.WebData.EncryptString(Data.WebData.key, "n"));
+			await storage.SetItemAsStringAsync("UserUsername", "-");
+		}
+		isLoggedIn = await Data.WebData.ValidateUser(storage);
+		Console.WriteLine(isLoggedIn);
+
+
+		var dimension = await BS.GetDimensions();
+		Height = dimension.Height;
+		Width = dimension.Width;
+	}
+
+	private async void LogOut()
+	{
+		await storage.SetItemAsStringAsync("UserPasswordEncrypted", Data.WebData.EncryptString(Data.WebData.key, "n"));
+		await storage.SetItemAsStringAsync("UserUsername", "-");
+
+		nav.NavigateTo("/", true);
+	}
+}

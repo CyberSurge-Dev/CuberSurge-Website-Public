@@ -1,0 +1,194 @@
+﻿@inject ILocalStorageService storage;
+@inject NavigationManager nav;
+@inject IJSRuntime JS;
+
+<div class="blur-box post-box">
+	<div class="post-title" @onclick="OpenPost">
+		<h1>@Title</h1>
+		<p>@date.ToString("MMMM dd, yyyy")</p>
+	</div>
+	<div class="content-area" @onclick="OpenPost">
+		@if (CoverImages.Count() > 0)
+		{
+			<div class="min-ca inset-blur-box mini-content">
+				@((MarkupString)Body)
+			</div>
+
+			<div class="min-ca">
+				<Carousel DataSource="CoverImages.ToArray()" HideArrows HideIndicators SlideShow AutoPlay Loop Interval="3000"
+					  Style="height: 40vh; width: 99%; border-radius: 7px; border: 2px white solid; margin-bottom: 5px;"></Carousel>
+			</div>
+		} else
+		{
+			<div class="min-ca double inset-blur-box">
+				<div class="mini-content">
+					@((MarkupString)Body)
+				</div>
+			</div>
+		}
+	</div>
+	<div class="bottom-area">
+		<div class="tag-area min-ca">
+			@foreach (var tag in PostTags)
+			{
+				<div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag</div>
+			}
+		</div>
+		<div class="min-ca interaction-zone">
+			@if (IsLoggedIn)
+			{
+				<button @onclick="PostLike">
+					@if (IsPostLiked)
+					{
+						<img src="Images/Liked.png" style="width: 35px;" />
+					}
+					else
+					{
+						<img src="Images/UnLiked.png" style="width: 35px;" />
+					}
+					@LikeCount
+				</button>
+			}
+			else
+			{
+				<button><img src="Images/UnLiked.png" style="width: 35px;" />@LikeCount</button>
+			}
+			<button><img src="Images/Comments.png" style="width: 35px;" />@CommentCount</button>
+			<button>Share</button>
+		</div>
+	</div>
+	<p>(Click post to view more)</p>
+</div>
+
+@code {
+	[Parameter]
+	public int PostID { get; set; }
+
+	private bool isForumPost = true;
+
+	private string Body = "";
+	private string Title = "";
+
+	private DateTime date;
+
+	private int LikeCount = 0;
+
+	private bool IsPostLiked = false;
+
+	private bool IsLoggedIn = false;
+
+	private int CommentCount = 0;
+
+	private List<dynamic> CoverImages = new List<dynamic>();
+
+	private List<WebDB.Tags.Model> PostTags = new List<WebDB.Tags.Model>();
+	private List<WebDB.BlogFiles.Model> UploadedFiles = new List<WebDB.BlogFiles.Model>();
+
+	
+
+	private async void OpenPost()
+	{
+		nav.NavigateTo($"/Blog/{PostID.ToString()}", true);
+	}
+
+	private async void PostLike()
+	{
+		var user = await Data.WebData.GetCurrentUser(storage);
+
+		if (IsPostLiked)
+		{
+			IsPostLiked = false;
+			WebDB.BlogLikes.Access.RemoveByUserId(user.id);
+			LikeCount -= 1;
+		}
+		else
+		{
+			IsPostLiked = true;
+			WebDB.BlogLikes.Access.Add(new WebDB.BlogLikes.Model()
+				{
+					BlogPostID = PostID,
+					UserID = user.id
+				});
+			LikeCount += 1;
+		}
+		//nav.NavigateTo($"/Blog/{PostID.ToString()}", true);
+		StateHasChanged();
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var Post = WebDB.BlogPosts.Access.GetByID(PostID);
+
+		if (await Data.WebData.ValidateUser(storage))
+		{
+			IsLoggedIn = true;
+		}
+
+		Body = Markdig.Markdown.ToHtml(Post.Body);
+		Title = Post.Title;
+		date = Post.PostDate;
+
+		if (Title != null)
+		{
+
+			isForumPost = true;
+
+			foreach (var file in WebDB.BlogFiles.Access.GetByPostID(PostID))
+			{
+				if ((file.Filename.ToLower()).Contains(".png") || (file.Filename.ToLower()).Contains(".jpeg") || (file.Filename.ToLower()).Contains(".svg") || (file.Filename.ToLower()).Contains(".webp"))
+				{
+
+					var base64 = Convert.ToBase64String(file.Content);
+					var ImageSource = "";
+
+					if ((file.Filename.ToLower()).Contains(".png"))
+					{
+						ImageSource = String.Format("data:image/png;base64,{0}", base64);
+					}
+					else if ((file.Filename.ToLower()).Contains(".jpeg"))
+					{
+						ImageSource = String.Format("data:image/jpeg;base64,{0}", base64);
+					}
+					else if ((file.Filename.ToLower()).Contains(".svg"))
+					{
+						ImageSource = String.Format("data:image/svg;base64,{0}", base64);
+					}
+					else if ((file.Filename.ToLower()).Contains(".webp"))
+					{
+						ImageSource = String.Format("data:image/webp;base64,{0}", base64);
+					}
+					else
+					{
+						ImageSource = "";
+					}
+
+					CoverImages.Add(
+						new { label = "", content = "", image = ImageSource }
+					);
+
+				}
+				else
+				{
+					UploadedFiles.Add(file);
+				}
+			}
+			foreach (var tag in WebDB.BlogPostTags.Access.GetByPostID(PostID))
+			{
+				if (WebDB.Tags.Access.GetByID(tag.TagID).Tag != null)
+				{
+					PostTags.Add(WebDB.Tags.Access.GetByID(tag.TagID));
+				}
+			}
+			CommentCount = WebDB.BlogComments.Access.GetByPostID(PostID).Count();
+			LikeCount = WebDB.BlogLikes.Access.LikeCountByPostID(PostID);
+
+			var user = await Data.WebData.GetCurrentUser(storage);
+			IsPostLiked = WebDB.BlogLikes.Access.UserLiked(user.id, PostID);
+		}
+		else
+		{
+			isForumPost = false;
+		}
+	}
+
+}

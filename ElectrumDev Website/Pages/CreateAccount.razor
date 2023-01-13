@@ -1,0 +1,110 @@
+﻿@page "/CreateAccount"
+
+<PageTitle>CyberSurge -- Create Account</PageTitle>
+
+@inject Blazored.LocalStorage.ILocalStorageService storage;
+@inject NavigationManager nav;
+
+<div class="blur-box" style="margin: 2%; margin-bottom: 22vh;">
+	<h1 style="font-size: 90px; font-weight: 700; color:white;"><em>Create account</em></h1>
+	<form @onsubmit="createAccount" style="display: flex; flex-direction:column; color: white;">
+		<label style="margin-top: 1%; font-size: 30px; font-weight: 600;">Username</label>
+		<input @bind-value="username" class="inset-blur-box" style="border: none; width: 100%; padding: 15px 10px; color: white;" placeholder="Username" maxlength="15"/>
+
+		<label style="margin-top: 1%; font-size: 30px; font-weight: 600;">Email</label>
+		<input @bind-value="email" class="inset-blur-box" style="border: none; width: 100%; padding: 15px 10px; color: white;" placeholder="Email" />
+
+		<label style="margin-top: 1%; font-size: 30px; font-weight: 600;">Password</label>
+		<input @bind-value="password" class="inset-blur-box" style="border: none; width: 100%; padding: 18px 10px; color: white;" placeholder="Password" type="password" />
+		<span>
+			<button style="margin-top: 1%; padding: 8px 15px; background-color: rgb(43, 83, 212); font-size: 20px; font-weight: 600; width: fit-content; text-align: center; color:white; border: none; border-radius: 18px; font-size: 26px;">Submit</button>
+			<input @bind-value="code" class="inset-blur-box" style="border: none; font-size: 20px; font-weight: 600; width: fit-content; padding: 10px; color: white; float: right; margin-top: 20px;" placeholder="Admin code" type="password" />
+		</span>
+	</form>
+	<span><p>@message</p></span>
+	<div style="display: flex; flex-direction: row; width: 100%; margin-top: 10%;">
+		<p> Design ⯁ Innovate ⯁ Create</p>
+	</div>
+</div>
+
+@code {
+
+	private string message = "-";
+
+	private string email = "";
+	private string password = "";
+	private string username = "";
+	private string code = "";
+
+
+	private static string pass = "C5G3jV57w94xofgSzwF3sMq-1E";
+	private string adminCode = Data.WebData.EncryptString(Data.WebData.key, pass);
+
+	private async void createAccount()
+	{
+		if (email != "" || password != "" || username != "") 
+		{
+			try
+			{
+				var user = new WebDB.Users.Model();
+
+				user.Email = email.ToLower();
+				user.Username = username;
+				user.Password = Data.WebData.EncryptString(Data.WebData.key, password);
+
+				if (Data.WebData.EncryptString(Data.WebData.key, code) == adminCode)
+				{
+					user.IsAdmin = "true";
+				}
+				else
+				{
+					user.IsAdmin = "false";
+				}
+
+				List<WebDB.Users.Model> CurrentUsers = WebDB.Users.Access.GetItems();
+
+				bool valid = true;
+				foreach (var usr in CurrentUsers)
+				{
+					if (usr.Username == user.Username)
+					{
+						valid = false;
+						message = "Username taken";
+						break;
+					} else if (usr.Email == user.Email)
+					{
+						valid = false;
+						message = "Email already used. Do you already have an account?";
+						break;
+					}
+				}
+
+				if (valid)
+				{
+					WebDB.Users.Access.Add(user);
+					message = "Account created.";
+					if (user.IsAdmin == "true")
+					{
+						message += " (Admin Account)";
+					}
+
+					await storage.SetItemAsStringAsync("UserPasswordEncrypted", Data.WebData.EncryptString(Data.WebData.key, password));
+					await storage.SetItemAsStringAsync("UserUsername", username);
+					nav.NavigateTo("/", true);
+				} 
+			} 
+			catch (Exception ex)
+			{
+				message = ex.ToString();
+			}
+
+			
+		} 
+		else
+		{
+			message = "Please fill all fields!";
+		}
+
+
+	}
+}

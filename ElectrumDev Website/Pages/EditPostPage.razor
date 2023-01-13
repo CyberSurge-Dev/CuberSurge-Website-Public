@@ -1,0 +1,468 @@
+﻿@page "/Blog/Edit/{BlogPostID}"
+
+<PageTitle>CyberSurge -- Edit Post</PageTitle>
+
+@inject ILocalStorageService storage;
+@inject IJSRuntime JS;
+
+@if (isValidUser && PostExist)
+{
+	<div class="blur-box" style="display: flex; flex-direction: column; color: white; margin: 2%; margin-bottom: 13vh;">
+		<h1 style="font-size: 46px; font-weight: 800;"><em>Edit blog post</em></h1>
+
+		<h2 style="color: white; font-weight: 700; font-size: 30px">Post title</h2>
+		<input @bind-value="title" class="inset-blur-box" style="color: white; font-size: 26px;" />
+
+		<div class="tag-area" style="margin-top: 8px;">
+			@foreach (var tag in WebDB.Tags.Access.GetItems())
+			{
+				@if (TagIDs.Contains(tag.id))
+				{
+					TempBools.TryAdd(tag.Tag, true);
+					<div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag<SwitchButton @bind-Checked="@TempBools[tag.Tag]" Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+				} else
+				{
+					<div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag<SwitchButton Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+				}
+			}
+		</div>
+		<p>@tagS</p>
+
+		<h2>Post body</h2>
+		<div class="col-md-12" style="margin-top: 15px">
+			<MarkdownEditor @bind-Value="@markdownValue" 
+						ValueHTMLChanged="@OnMarkdownValueHTMLChanged" />
+		</div>
+
+		<h2 style="color: white; font-weight: 700; font-size: 30px">Files</h2>
+		<InputFile OnChange="@FileUploads" multiple />
+		<div class="tag-area" style="margin-top: 10px;">
+			@foreach (var file in UploadedFiles) {
+				<div class="blog-tag" style="background-color: rgb(100 100 100 / 0.80);">@file.Filename <button @onclick="() => RemFiles(file)" style="color: white; border: none; background-color: transparent; font-weight: 800;">X</button></div>
+			}
+		</div>
+		
+
+		<h2 style="color: white; font-weight: 700; font-size: 30px; margin-top: 15px;">Cover images</h2>
+		<InputFile OnChange="@CoverUploads" multiple />
+		<div class="tag-area" style="margin-top: 10px;">
+			@foreach (var file in UploadedCovers)
+			{
+				<div class="blog-tag" style="background-color: rgb(100 100 100 / 0.80);">@file.Filename <button @onclick="() => RemCover(file)" style="color: white; border: none; background-color: transparent; font-weight: 800;">X</button></div>
+			}
+		</div>
+
+
+		<h2 style="margin-top: 50px;">Post Preview</h2>
+		<div class="title">
+			<h2>@title</h2>
+			<p>@DateTime.Now</p>
+		</div>
+		<div class="inset-blur-box post-content-area" style="min-height: 90vh; margin-top: 1%; margin-bottom: 4%;">
+			<div class="post-user-content">
+				@((MarkupString)markdownHtml)
+			</div>
+			<div class="post-file-area" style="width: 100%;">
+				<div class="">
+					@if (CoverImages.Count() > 0)
+					{
+						<div class="image-zone" style="margin-bottom: 20px;">
+							<Carousel DataSource="CoverImages.ToArray()" HideArrows HideIndicators SlideShow AutoPlay Loop Interval="3000"
+							  Style="height: 30vh; width: 100%; border-radius: 18px; border: 2px white solid;"></Carousel>
+						</div>
+					}
+					<div class="interaction-zone" style="margin-bottom: 20px;">
+						<button><img src="Images/UnLiked.png" style="width: 35px;" /> 0</button>
+						<button>Share</button>
+					</div>
+					@if (UploadedFiles.Count() > 0)
+					{
+						<div class="file-zone">
+							<span><h2>Files</h2> <button @onclick="DownloadAll">Download All<img src="Images/DownloadIcon.svg" /></button></span>
+							<div class="zone">
+								@foreach (var file in UploadedFiles)
+								{
+									<span> <p>@file.Filename</p> <button @onclick="() => DownloadFile(file)"> <img src="Images/DownloadIcon.svg" /> </button></span>
+								}
+							</div>
+						</div>
+					}
+					@if (SelectedTags.Count() > 0)
+					{
+						<div class="tag-zone">
+							@foreach (var tag in SelectedTags)
+							{
+								<div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+		<button style=" border: none; margin-top: 10px; border-radius: 18px; padding: 15px 18px; color: white; background-color: rgb(43, 83, 212); width: 20%; font-size: 22px;" @onclick="CreatePost">Confirm Edit</button>
+		<span><p>@message</p></span>
+	</div>
+} else
+{
+	<p style="margin-bottom: 100vh;">This page is not avilable for regular users, please <a href="/" style="text-decoration: none;">Return to the main page.</a></p>
+}
+
+@code {
+	[Parameter]
+	public string BlogPostID { get; set; }
+
+
+	private bool enabled = true;
+	private int PostID = 0;
+
+	private List<dynamic> CoverImages = new List<dynamic>();
+
+	private List<WebDB.Tags.Model> SelectedTags = new List<WebDB.Tags.Model>();
+	private List<WebDB.BlogFiles.Model> UploadedFiles = new List<WebDB.BlogFiles.Model>(); 
+	private List<WebDB.BlogFiles.Model> UploadedCovers = new List<WebDB.BlogFiles.Model>();
+
+	List<int> TagIDs = new List<int>();
+	Dictionary<string, bool> TempBools = new Dictionary<string, bool>();
+
+	private string markdownValue = "";
+	private string markdownHtml = "";
+
+	private string tagS = "";
+
+	private string title = "";
+
+	private string message = "-";
+
+	private bool isValidUser;
+
+	private bool PostExist = true;
+
+	private void RemCover(WebDB.BlogFiles.Model file)
+	{
+		UploadedCovers.Remove(file);
+		StateHasChanged();
+	}
+
+	private void RemFiles(WebDB.BlogFiles.Model file)
+	{
+		UploadedFiles.Remove(file);
+		StateHasChanged();
+	}
+
+	private async void DownloadFile(WebDB.BlogFiles.Model file)
+	{
+		var fileStream = new MemoryStream(file.Content);
+		var fileName = file.Filename;
+
+		using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+		await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (await Data.WebData.ValidateUser(storage))
+		{
+			var user = await Data.WebData.GetCurrentUser(storage);
+			if (user.IsAdmin == "true")
+			{
+				isValidUser = true;
+			}
+		}
+
+		PostID = Convert.ToInt32(BlogPostID);
+
+		var post = WebDB.BlogPosts.Access.GetByID(PostID);
+
+		if (post.Title == null)
+		{
+			PostExist = false;
+		} else
+		{
+			//string TS = "";
+			//List<> TL = Markdig.Markdown.Parse(post.Body).ToList();
+			//foreach (string i in TL)
+			//{
+
+			//}
+
+
+			title = post.Title;
+			markdownValue = post.Body;
+
+
+
+			StateHasChanged();
+		}
+
+		foreach (var file in WebDB.BlogFiles.Access.GetByPostID(PostID))
+		{
+			if ((file.Filename.ToLower()).Contains(".png") || (file.Filename.ToLower()).Contains(".jpeg") || (file.Filename.ToLower()).Contains(".svg") || (file.Filename.ToLower()).Contains(".webp"))
+			{
+				UploadedCovers.Add(file);
+
+				var base64 = Convert.ToBase64String(file.Content);
+				var ImageSource = "";
+
+				if ((file.Filename.ToLower()).Contains(".png"))
+				{
+					ImageSource = String.Format("data:image/png;base64,{0}", base64);
+				}
+				else if ((file.Filename.ToLower()).Contains(".jpeg"))
+				{
+					ImageSource = String.Format("data:image/jpeg;base64,{0}", base64);
+				}
+				else if ((file.Filename.ToLower()).Contains(".svg"))
+				{
+					ImageSource = String.Format("data:image/svg;base64,{0}", base64);
+				}
+				else if ((file.Filename.ToLower()).Contains(".webp"))
+				{
+					ImageSource = String.Format("data:image/webp;base64,{0}", base64);
+				}
+				else
+				{
+					ImageSource = "";
+				}
+
+				CoverImages.Add(
+					new { label = "", content = "", image = ImageSource }
+				);
+
+			} else
+			{
+				UploadedFiles.Add(file);
+			}
+		}
+
+		foreach (var tag in WebDB.BlogPostTags.Access.GetByPostID(PostID))
+		{
+			var Ttag = WebDB.Tags.Access.GetByID(tag.TagID);
+			if (Ttag != null)
+			{
+				SelectedTags.Add(Ttag);
+				TagIDs.Add(Ttag.id);
+			}
+		}
+	}
+
+	private ActionResult ByteToFile(WebDB.BlogFiles.Model file)
+	{
+		return new FileContentResult(file.Content, file.Filename);
+	}
+
+	private void addTag(int tagID)
+	{
+		WebDB.Tags.Model Fitem;
+		foreach (var item in WebDB.Tags.Access.GetItems())
+		{
+			if (item.id == tagID)
+			{
+				Fitem = item;
+				SelectedTags.Add(Fitem);
+				Console.WriteLine("CurAdd: " + Fitem.Tag);
+				getSelected();
+				break;
+			}
+		}
+	}
+
+	private void remTag(int tagID)
+	{
+		WebDB.Tags.Model Fitem;
+		foreach (var item in SelectedTags)
+		{
+			if (item.id == tagID)
+			{
+				Console.WriteLine("ContainsItemBefRem:" + SelectedTags.Contains(item));
+				SelectedTags.Remove(item);
+				Console.WriteLine("RemItem: " + item.Tag);
+				Console.WriteLine("ContainsItem:" + SelectedTags.Contains(item));
+				getSelected();
+				break;
+			}
+		}
+	}
+
+	private string getSelected()
+	{
+		string ret = "";
+		foreach (var i in SelectedTags)
+		{
+			ret += i.Tag + ", ";
+		}
+		return ret;
+
+	}
+
+	protected override void OnInitialized()
+	{
+		markdownHtml = Markdig.Markdown.ToHtml(markdownValue ?? string.Empty);
+		base.OnInitialized();
+	}
+
+	Task OnMarkdownValueChanged(string value)
+	{
+		return Task.CompletedTask;
+	}
+
+	Task OnMarkdownValueHTMLChanged(string value)
+	{
+		markdownHtml = value;
+		return Task.CompletedTask;
+	}
+
+	private async Task FileUploads(InputFileChangeEventArgs e)
+	{
+		try
+		{
+			foreach (var file in e.GetMultipleFiles())
+			{
+				await using MemoryStream ms = new MemoryStream();
+				await file.OpenReadStream(2000000).CopyToAsync(ms);
+
+				var bytes = ms.ToArray();
+
+				var UF = new WebDB.BlogFiles.Model()
+					{
+						Filename = file.Name,
+						Content = bytes
+					};
+
+				UploadedFiles.Add(UF);
+			}
+		}
+		catch (Exception ex)
+		{
+			message = ex.ToString();
+		}
+	}
+
+	private async Task CoverUploads(InputFileChangeEventArgs e)
+	{
+		try
+		{
+			foreach (var file in e.GetMultipleFiles())
+			{
+				await using MemoryStream ms = new MemoryStream();
+				await file.OpenReadStream(20000000).CopyToAsync(ms);
+
+				var bytes = ms.ToArray();
+
+				var UF = new WebDB.BlogFiles.Model()
+				{
+					Filename = file.Name,
+					Content = bytes
+				};
+
+				UploadedCovers.Add(UF);
+
+				var base64 = Convert.ToBase64String(bytes);
+				var ImageSource = "";
+
+				if ((file.Name.ToLower()).Contains(".png"))
+				{
+					ImageSource = String.Format("data:image/png;base64,{0}", base64);
+				}
+				else if ((file.Name.ToLower()).Contains(".jpeg"))
+				{
+					ImageSource = String.Format("data:image/jpeg;base64,{0}", base64);
+				}
+				else if ((file.Name.ToLower()).Contains(".svg"))
+				{
+					ImageSource = String.Format("data:image/svg;base64,{0}", base64);
+				}
+				else if ((file.Name.ToLower()).Contains(".webp"))
+				{
+					ImageSource = String.Format("data:image/webp;base64,{0}", base64);
+				}
+				else
+				{
+					ImageSource = "";
+				}
+
+				CoverImages.Add(
+					new { label = "", content = "", image = ImageSource }
+				);
+			}
+		} catch (Exception ex)
+		{
+			message = ex.ToString();
+		}
+	}
+
+	private async Task CreatePost()
+	{
+
+		WebDB.BlogFiles.Access.RemoveByPostID(PostID);
+		WebDB.BlogPostTags.Access.RemoveByPostID(PostID);
+
+		if (markdownHtml != "" && title != "")
+		{
+			var post = new WebDB.BlogPosts.Model()
+				{
+					Title = title,
+					Body = markdownHtml,
+					PostDate = DateTime.Now,
+					id = PostID
+				};
+
+
+			try
+			{
+				WebDB.BlogPosts.Access.ReplaceById(post);
+				message = "Post created.";
+
+				var NP = WebDB.BlogPosts.Access.GetByContent(post);
+				int postID = NP[0].id;
+
+				foreach (var file in UploadedFiles)
+				{
+					var newFile = new WebDB.BlogFiles.Model()
+						{
+							Content = file.Content,
+							Filename = file.Filename,
+							ForumPostID = postID
+						};
+					WebDB.BlogFiles.Access.Add(newFile);
+				}
+				message = "Files uploaded.";
+
+				foreach (var file in UploadedCovers)
+				{
+					var newFile = new WebDB.BlogFiles.Model()
+						{
+							Content = file.Content,
+							Filename = file.Filename,
+							ForumPostID = postID
+						};
+					WebDB.BlogFiles.Access.Add(newFile);
+				}
+				foreach (var tag in SelectedTags)
+				{
+					var newTag = new WebDB.BlogPostTags.Model()
+						{
+							ForumPostID = postID,
+							TagID = tag.id
+						};
+					WebDB.BlogPostTags.Access.Add(newTag);
+				}
+
+				message = "Post created successfully.";
+			}
+			catch (Exception ex)
+			{
+				message = ex.ToString();
+			}
+		}
+
+	}
+
+	private async void DownloadAll()
+	{
+		foreach (var file in UploadedFiles)
+		{
+			DownloadFile(file);
+		}
+	}
+}

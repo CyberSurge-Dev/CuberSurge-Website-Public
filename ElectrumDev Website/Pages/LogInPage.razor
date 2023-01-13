@@ -1,0 +1,64 @@
+﻿@page "/LogIn"
+
+<PageTitle>CyberSurge -- Login</PageTitle>
+
+@inject Blazored.LocalStorage.ILocalStorageService storage;
+@inject NavigationManager nav;
+
+<div class="blur-box" style="margin: 5%; margin-bottom: 22vh;">
+	<h1 style="font-size: 90px; font-weight: 700; color:white;"><em>Login</em></h1>
+	<form @onsubmit="LogIn" style="display: flex; flex-direction:column; color: white;">
+		<label style="margin-top: 1%; font-size: 30px; font-weight: 600;">Username</label>
+		<input @bind-value="username" class="inset-blur-box" style="border: none; width: 100%; padding: 15px 10px; color: white;" placeholder="Username/Email" />
+
+		<label style="margin-top: 1%; font-size: 30px; font-weight: 600;">Password</label>
+		<input type="password" @bind-value="password" class="inset-blur-box" style="border: none; width: 100%; padding: 18px 10px; color: white;" placeholder="Password" />
+		<button style="margin-top: 1%; padding: 8px 15px; background-color: rgb(43, 83, 212); text-align: center; color:white; border: none; border-radius: 18px; font-size: 20px; font-weight: 600; width: fit-content;">Submit</button>
+	</form>
+	<span><p>@message</p></span>
+	<div style="display: flex; flex-direction: row; width: 100%; margin:auto; justify-content: space-between; margin-top: 17%;">
+		<p> Design ⯁ Innovate ⯁ Create</p>
+		<p style="margin-left: 49vw; align-self: end; vertical-align: central; text-align: center;">Dont have an account? <a href="/CreateAccount" style="text-decoration: none; ">Create one.</a></p>
+	</div>
+</div>
+
+
+@code {
+	private string message = "-";
+
+	private string username = "";
+	private string password = "";
+
+	public async void LogIn()
+	{
+		if (username != "" || password != "")
+		{
+			bool valid = false;
+
+			List<WebDB.Users.Model> users = WebDB.Users.Access.GetItems();
+			foreach (var user in users)
+			{
+				if (user.Password == Data.WebData.EncryptString(Data.WebData.key, password)&& (user.Username == username || user.Email == username.ToLower())) 
+				{
+					valid = true;
+					break;
+				}
+			}
+
+			if (valid)
+			{
+				await storage.SetItemAsStringAsync("UserPasswordEncrypted", Data.WebData.EncryptString(Data.WebData.key, password));
+				await storage.SetItemAsStringAsync("UserUsername", username);
+				message = "Logged in.";
+				nav.NavigateTo("/", true);
+			} else
+			{
+				message = "Email or password is invalid.";
+			}
+
+		} else
+		{
+			message = "Please fill all fields!";
+		}
+	}
+}

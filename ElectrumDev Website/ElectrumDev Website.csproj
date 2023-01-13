@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ElectrumDev_Website</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Pages\AboutMe.razor.css" />
+    <None Remove="Pages\BlogPostPage.razor.css" />
+    <None Remove="Pages\Contact.razor.css" />
+    <None Remove="Pages\CreateTagPage.razor.css" />
+    <None Remove="Shared\BlogLayout.razor.css" />
+    <None Remove="Shared\Blog\BlogPage.razor.css" />
+    <None Remove="Shared\Blog\BlogPost.razor.css" />
+    <None Remove="Shared\Blog\SideBar.razor.css" />
+    <None Remove="Shared\Main\BasicInfo.razor.css" />
+    <None Remove="Shared\Main\LandingPage.razor.css" />
+    <None Remove="Shared\Main\SlideCards.razor.css" />
+    <None Remove="Shared\PageFooter.razor.css" />
+    <None Remove="Shared\TopNav.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\AboutMe.razor.css" />
+    <Content Include="Pages\BlogPostPage.razor.css" />
+    <Content Include="Pages\Contact.razor.css" />
+    <Content Include="Pages\CreateTagPage.razor.css" />
+    <Content Include="Shared\BlogLayout.razor.css" />
+    <Content Include="Shared\Blog\BlogPage.razor.css" />
+    <Content Include="Shared\Blog\BlogPost.razor.css" />
+    <Content Include="Shared\Blog\SideBar.razor.css" />
+    <Content Include="Shared\Main\BasicInfo.razor.css" />
+    <Content Include="Shared\Main\LandingPage.razor.css" />
+    <Content Include="Shared\Main\SlideCards.razor.css" />
+    <Content Include="Shared\PageFooter.razor.css" />
+    <Content Include="Shared\TopNav.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\css\js\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BlazorAnimate" Version="3.0.0" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+    <PackageReference Include="BlazorInputFile" Version="0.2.0" />
+    <PackageReference Include="Markdig" Version="0.30.4" />
+    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.9" />
+    <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.10" />
+    <PackageReference Include="Smart.Blazor" Version="14.4.39" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebDB\WebDB.csproj" />
+  </ItemGroup>
+
+</Project>

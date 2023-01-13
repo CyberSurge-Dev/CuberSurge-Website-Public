@@ -1,0 +1,345 @@
+﻿@page "/Blog/{ForumPostID}"
+@inject IJSRuntime JS;
+@inject ILocalStorageService storage;
+@inject NavigationManager nav;
+
+<meta name="description" content="@Title">
+
+@if (isForumPost)
+{
+	<div class="title">
+		<h2 style="font-size: 80px; font-weight: 700;">@Title</h2>
+		<p>@date.ToString("MMMM dd, yyyy")</p>
+	</div>
+	<div class="inset-blur-box post-content-area" style="min-height: 90vh; margin-top: 1%; margin-bottom: 4%;">
+		<div class="post-user-content">
+			@((MarkupString)Body)
+		</div>
+		<div class="post-file-area" style="width: 100%;">
+			<div class="">
+				@if (CoverImages.Count() > 0)
+				{
+					<div class="image-zone" style="margin-bottom: 20px;">
+						<Carousel DataSource="CoverImages.ToArray()" HideArrows HideIndicators SlideShow AutoPlay Loop Interval="3000"
+						  Style="height: 30vh; width: 100%; border-radius: 18px; border: 2px white solid;"></Carousel>
+					</div>
+				}
+				<div class="interaction-zone" style="margin-bottom: 20px;">
+					@if (IsLoggedIn)
+					{
+						<button @onclick="LikePost">
+							@if (IsPostLiked)
+							{
+								<img src="Images/Liked.png" style="width: 35px;" />
+							} else
+							{
+								<img src="Images/UnLiked.png" style="width: 35px;" />
+							}
+							@LikeCount
+						</button>
+					} else
+					{
+						<button><img src="Images/UnLiked.png" style="width: 35px;" />@LikeCount</button>
+					}
+
+					<button>Share</button>
+				</div>
+				@if (UploadedFiles.Count() > 0)
+				{
+					<div class="file-zone">
+						<span><h2>Files</h2> <button @onclick="DownloadAll">Download All<img src="Images/DownloadIcon.svg" /></button></span>
+						<div class="zone">
+							@foreach (var file in UploadedFiles)
+							{
+								<span> <p>@file.Filename</p> <button @onclick="() => DownloadFile(file)"> <img src="Images/DownloadIcon.svg" /> </button></span>
+							}
+						</div>
+					</div>
+				}
+				@if (PostTags.Count() > 0)
+				{
+					<div class="tag-zone">
+						@foreach (var tag in PostTags)
+						{
+							<div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag</div>
+						}
+					</div>
+				}
+				@if (isSuperUser)
+				{
+					<div class="admin-panel">
+						<button @onclick="SwapDelete"><img src="Images/Trash.png"/></button>
+						<button @onclick="EditPost"><img src="Images/Edit.png"/></button>
+					</div>
+					@if (DeleteWindow)
+					{
+						<button @onclick="DeletePost" class="login-button" style="background-color: rgb(256, 50, 50); color: white; border: none; margin-top: 10px;">Delete post</button>
+					}
+				}
+			</div>
+		</div>
+	</div>
+	<div class="comment-area blur-box" style="margin-bottom: 2%;">
+		<h1 style="color: white;">Comments</h1>
+		<div class="create-comment-area">
+			<h2 style="color: rgb(240, 240, 240);">Post a Comment</h2>
+			@if (IsLoggedIn)
+			{
+				<textarea placeholder="Type your comment here" @bind="comment"></textarea>
+				<button @onclick="CreateComment">Post Comment</button>
+				<span><p>@message</p></span>
+			}
+			else
+			{
+				<p style="align-self: center;">Login or create an account to post a comment.</p>
+				<div>
+					<a class="login-button" href="/LogIn">Login</a>
+					<a class="create-account-button" href="/CreateAccount">Create Account</a>
+				</div>
+				
+			}
+		</div>
+		@foreach (var comment in PostComments)
+		{
+			string username = "";
+			@if (WebDB.Users.Access.GetByID(comment.UserID).Username != null) 
+			{
+				username = WebDB.Users.Access.GetByID(comment.UserID).Username;
+			} else
+			{
+				username = "[Deleted]";
+			}
+
+			<div class="post-comment" style="margin-top: 15px;">
+				<h1><img src="Images/userIcon.png" style="width: 28px;"/>@username</h1>
+				<p>@comment.Comment</p>
+			</div>
+		}
+	</div>
+} else
+{
+	<p style="margin-bottom: 100vh;">Sorry, there is nothing at this address.</p>
+}
+
+
+
+@code {
+	[Parameter]
+	public string ForumPostID { get; set; }
+
+	private bool isForumPost = true;
+
+	private string Body = "";
+	private string Title = "";
+
+	private string message = "-";
+	private string comment = "";
+
+	private bool DeleteWindow = false;
+
+	private DateTime date;
+
+	private int LikeCount = 0;
+
+	private bool IsPostLiked = false;
+
+	private bool IsLoggedIn = false;
+	private bool isSuperUser = false;
+
+	private List<dynamic> CoverImages = new List<dynamic>();
+
+	private List<WebDB.Tags.Model> PostTags = new List<WebDB.Tags.Model>();
+	private List<WebDB.BlogFiles.Model> UploadedFiles = new List<WebDB.BlogFiles.Model>();
+	private List<WebDB.BlogComments.Model> PostComments = new List<WebDB.BlogComments.Model>();
+
+	private async void EditPost()
+	{
+		nav.NavigateTo($"/Blog/Edit/{ForumPostID}", true);
+	}
+
+	private async void DeletePost()
+	{
+		int PostID = Convert.ToInt32(ForumPostID);
+		WebDB.BlogComments.Access.RemoveByPostID(PostID);
+		WebDB.BlogLikes.Access.RemoveByPostID(PostID);
+		WebDB.BlogFiles.Access.RemoveByPostID(PostID);
+		WebDB.BlogPostTags.Access.RemoveByPostID(PostID);
+
+		WebDB.BlogPosts.Access.RemoveById(PostID);
+
+		nav.NavigateTo("/Blog", true);
+	}
+
+	private async void SwapDelete()
+	{
+		DeleteWindow = !DeleteWindow;
+	}
+
+	private async void LikePost()
+	{
+		var user = await Data.WebData.GetCurrentUser(storage);
+		int PostID = Convert.ToInt32(ForumPostID);
+
+		if (IsPostLiked)
+		{
+			IsPostLiked = false;
+			WebDB.BlogLikes.Access.RemoveByUserId(user.id);
+			LikeCount -= 1;
+		} else
+		{
+			IsPostLiked = true;
+			WebDB.BlogLikes.Access.Add(new WebDB.BlogLikes.Model()
+			{
+				BlogPostID = PostID,
+				UserID = user.id
+			});
+			LikeCount += 1;
+		}
+		//nav.NavigateTo($"/Blog/{PostID.ToString()}", true);
+
+		StateHasChanged();
+
+	}
+
+	private async void CreateComment()
+	{
+		if (comment != "")
+		{
+			try
+			{
+				int PostID = Convert.ToInt32(ForumPostID);
+				var User = await Data.WebData.GetCurrentUser(storage);
+
+				var c = new WebDB.BlogComments.Model()
+					{
+						UserID = User.id,
+						Comment = comment,
+						BlogPostID = PostID
+					};
+				WebDB.BlogComments.Access.Add(c);
+
+				message = "Comment created.";
+
+				nav.NavigateTo($"/Blog/{PostID.ToString()}", true);
+
+			} catch (Exception ex)
+			{
+				message = ex.ToString();
+			}
+		} else
+		{
+			message = "Please fill all fields.";
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			if (await Data.WebData.ValidateUser(storage))
+			{
+				IsLoggedIn = true;
+				var user = await Data.WebData.GetCurrentUser(storage);
+				if (user.IsAdmin == "true")
+				{
+					isSuperUser = true;
+				}
+			}
+
+			int PostID = Convert.ToInt32(ForumPostID);
+
+			var Post = WebDB.BlogPosts.Access.GetByID(PostID);
+
+			Body = Markdig.Markdown.ToHtml(Post.Body);
+			Title = Post.Title;
+			date = Post.PostDate;
+
+			if (Title != null)
+			{
+
+				isForumPost = true;
+
+				foreach (var file in WebDB.BlogFiles.Access.GetByPostID(PostID))
+				{
+					if ((file.Filename.ToLower()).Contains(".png") || (file.Filename.ToLower()).Contains(".jpeg") || (file.Filename.ToLower()).Contains(".svg") || (file.Filename.ToLower()).Contains(".webp"))
+					{
+
+						var base64 = Convert.ToBase64String(file.Content);
+						var ImageSource = "";
+
+						if ((file.Filename.ToLower()).Contains(".png"))
+						{
+							ImageSource = String.Format("data:image/png;base64,{0}", base64);
+						}
+						else if ((file.Filename.ToLower()).Contains(".jpeg"))
+						{
+							ImageSource = String.Format("data:image/jpeg;base64,{0}", base64);
+						}
+						else if ((file.Filename.ToLower()).Contains(".svg"))
+						{
+							ImageSource = String.Format("data:image/svg;base64,{0}", base64);
+						}
+						else if ((file.Filename.ToLower()).Contains(".webp"))
+						{
+							ImageSource = String.Format("data:image/webp;base64,{0}", base64);
+						}
+						else
+						{
+							ImageSource = "";
+						}
+
+						CoverImages.Add(
+							new { label = "", content = "", image = ImageSource }
+						);
+
+					}
+					else
+					{
+						UploadedFiles.Add(file);
+					}
+				}
+				foreach (var tag in WebDB.BlogPostTags.Access.GetByPostID(PostID))
+				{
+					if (WebDB.Tags.Access.GetByID(tag.TagID).Tag != null)
+					{
+						PostTags.Add(WebDB.Tags.Access.GetByID(tag.TagID));
+					}
+				}
+				PostComments = WebDB.BlogComments.Access.GetByPostID(PostID);
+				LikeCount = WebDB.BlogLikes.Access.LikeCountByPostID(PostID);
+
+				var user = await Data.WebData.GetCurrentUser(storage);
+				IsPostLiked = WebDB.BlogLikes.Access.UserLiked(user.id, PostID);
+
+				await JS.InvokeVoidAsync("OnScrollEvent");
+			}
+			else
+			{
+				isForumPost = false;
+			}
+		} catch (Exception)
+		{
+			isForumPost = false;
+			await JS.InvokeVoidAsync("OnScrollEvent");
+		}
+
+	}
+
+	private async void DownloadFile(WebDB.BlogFiles.Model file)
+	{
+		var fileStream = new MemoryStream(file.Content);
+		var fileName = file.Filename;
+
+		using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+		await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+	}
+
+	private async void DownloadAll()
+	{
+		foreach (var file in UploadedFiles)
+		{
+			DownloadFile(file);
+		}
+	}
+}

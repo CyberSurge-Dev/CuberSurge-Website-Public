@@ -1,0 +1,40 @@
+﻿.background {
+	background: linear-gradient(rgba(46,46,46,1) 7%, rgba(71,71,71,1) 35%, rgba(63,69,131,1) 68%, rgba(51,65,215,1) 93%);
+	width: 100%;
+	color: white;
+}
+
+.bg {
+	background: linear-gradient(316deg, #14314c, #1b4861, #144247, #284156, #324263);
+	background-size: 1000% 1000%;
+	-webkit-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
+}
+
+@-webkit-keyframes AnimationName {
+	0% {
+		background-position: 4% 0%
+	}
+
+	50% {
+		background-position: 97% 100%
+	}
+
+	100% {
+		background-position: 4% 0%
+	}
+}
+
+@keyframes AnimationName {
+	0% {
+		background-position: 4% 0%
+	}
+
+	50% {
+		background-position: 97% 100%
+	}
+
+	100% {
+		background-position: 4% 0%
+	}
+}

@@ -1,0 +1,13 @@
+﻿.landing-page {
+    margin: auto; padding: 0; align-items: center; text-align: center; height: 100vh;
+}
+
+    .landing-page h1 {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 700;
+        font-size: 6vw;
+        text-decoration: none;
+        color: white;
+        
+    }
+

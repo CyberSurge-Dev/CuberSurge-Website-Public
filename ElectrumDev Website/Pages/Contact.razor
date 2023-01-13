@@ -1,0 +1,77 @@
+﻿@page "/Contact"
+@inject NavigationManager nav;
+
+<PageTitle>CyberSurge -- Contact</PageTitle>
+
+@using System.Net.Mail;
+
+<div class="blur-box" style="margin: 4vh;">
+	<h1>Contact Me</h1>
+	<div class="flex-row">
+		<div>
+			<img src="Images/quarklogo.png" style="width: 70%; margin: auto; margin-left: 15%;" />
+		</div>
+		<div>
+			<h3>Name</h3>
+			<input @bind="name" class="inset-blur-box" style="color: white; width: 100%; font-size: 22px;" placeholder="Enter your name here" />
+			<h3>Email/Contact</h3>
+			<input @bind="email" class="inset-blur-box" style="color: white; font-size: 22px; width: 100%;" placeholder="Enter your email here" />
+
+			<h3 style="margin-top: 4vh;">Subject</h3>
+			<input @bind="subject" class="inset-blur-box" style="color: white; font-size: 22px; width: 100%;" placeholder="Enter subject here" />
+			
+			<h3>Message</h3>
+			<textarea @bind="message" style="color: white; font-size: 22px; height: 23vh; width: 100%;" placeholder="Enter your message here" class="inset-blur-box"></textarea>
+
+			<button class="main-button" @onclick="sendMail">Send Message</button>
+			<a class="secondary-button" href="mailto:CyberSurgeDev@gmail.com">Email Me</a>
+			<p>@res</p>
+		</div>
+	</div>
+</div>
+
+@code {
+	string subject = "";
+	string name = "";
+	string email = "";
+	string message = "";
+	string res = "-";
+
+	private void sendMail()
+	{
+		try
+		{
+			if (name == "" || email == "" || message == "" || subject == "")
+			{
+				res = "Invalid! Please fill all fields.";
+			}
+			else
+			{
+				using (MailMessage mail = new MailMessage())
+				{
+					mail.From = new MailAddress("CyberSurgeDev@gmail.com");
+					mail.To.Add("CyberSurgeDev@gmail.com");
+					mail.Subject = $"CS Contact -- {subject}";
+					mail.Body = $"<h2>Email: {email}</h2> <h2>Name: {name}</h2> <h2>Message:</h2> <h3>{message}</h3>";
+					mail.IsBodyHtml = true;
+
+					using (SmtpClient smpt = new SmtpClient("smtp.gmail.com", 587))
+					{
+						smpt.Credentials = new System.Net.NetworkCredential("CyberSurgeDev@gmail.com", "ebogpetnjsxewtix");
+						smpt.EnableSsl = true;
+						smpt.Send(mail);
+						res = "Sent!";
+
+						nav.NavigateTo("/", true);
+					}
+				}
+
+			}
+
+		}
+		catch (Exception ex)
+		{
+			res = ex.ToString();
+		}
+	}
+}

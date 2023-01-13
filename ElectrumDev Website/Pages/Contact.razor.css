@@ -1,0 +1,55 @@
+﻿h1 {
+	color: white;
+	font-size: 70px;
+	font-weight: 700;
+}
+
+h2 {
+	color: white;
+	font-size: 46px;
+	font-weight: 600;
+}
+
+h3 {
+	color: rgb(204, 204, 204);
+	font-size: 30px;
+	font-weight: 500;
+}
+
+li {
+	color: rgb(204, 204, 204);
+	font-size: 23px;
+	font-family: "Nunito", sans-serif;
+	font-weight: 600;
+}
+
+
+.main-button {
+	color: white;
+	padding: 15px 10px;
+	background-color: rgb(43, 83, 212);
+	text-decoration: none;
+	border: none;
+	font-size: 20px;
+	border-radius: 15px;
+	font-weight: 600;
+	transition: 0.3s ease 0s;
+}
+
+.main-button:hover {
+	color: black;
+	background-color: white;
+}
+
+.secondary-button {
+
+	cursor: pointer;
+	color: black;
+	background-color: white;
+	text-decoration: none;
+	padding: 15px 10px;
+	border: none;
+	font-size: 20px;
+	border-radius: 15px;
+	font-weight: 600;
+}

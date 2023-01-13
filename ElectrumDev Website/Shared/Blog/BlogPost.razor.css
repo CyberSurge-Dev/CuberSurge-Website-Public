@@ -1,0 +1,123 @@
+﻿@media (min-width: 960px) {
+    .post-box {
+        margin: 2%;
+        width: contain;
+    }
+
+    .content-area {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .bottom-area {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        background-color: rgb(100 100 100 / 0.80);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .min-ca {
+        min-width: 50%;
+        max-width: 100%;
+        max-height: 40vh;
+        overflow-y: hidden;
+    }
+
+    .double {
+        width: 200%;
+    }
+
+    .mini-content {
+        text-align: left;
+    }
+
+    .post-title {
+        background-color: rgb(69 69 69 / 0.80);
+        padding: 8px;
+        border-radius: 8px;
+        display: flex;
+        text-align: left;
+        flex-direction: column;
+        margin-bottom: 10px;
+    }
+
+        .post-title h1 {
+            color: rgb(230, 230, 230);
+            font-size: 6vh;
+            font-weight: 500;
+        }
+
+    .CCE {
+        height: 40vh;
+        width: 99%;
+        border-radius: 7px;
+        border: 2px white solid;
+    }
+}
+
+@media (max-width: 960px) {
+    .CCE {
+        height: 20vh;
+        width: 99%;
+        border-radius: 7px;
+        border: 2px white solid;
+    }
+    .post-box {
+        margin: 2%;
+        width: contain;
+    }
+
+    .content-area {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .bottom-area {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background-color: rgb(100 100 100 / 0.80);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .min-ca {
+        width: 100%;
+        max-height: 45vh;
+        overflow-y: hidden;
+    }
+
+    .double {
+        width: 200%;
+    }
+
+    .mini-content {
+        text-align: left;
+        width: 100%;
+    }
+
+    .post-title {
+        background-color: rgb(69 69 69 / 0.80);
+        padding: 8px;
+        border-radius: 8px;
+        display: flex;
+        text-align: left;
+        flex-direction: column;
+        margin-bottom: 10px;
+    }
+
+        .post-title h1 {
+            color: rgb(230, 230, 230);
+            font-size: 6vh;
+            font-weight: 500;
+        }
+}
+

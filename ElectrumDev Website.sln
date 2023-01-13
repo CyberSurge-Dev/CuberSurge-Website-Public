@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElectrumDev Website", "ElectrumDev Website\ElectrumDev Website.csproj", "{A87C9D0A-EA8E-4568-B54D-7BEFBF6FF0AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDB", "WebDB\WebDB.csproj", "{C9B4B970-107A-4331-AEEA-0CC5C766547D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A87C9D0A-EA8E-4568-B54D-7BEFBF6FF0AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A87C9D0A-EA8E-4568-B54D-7BEFBF6FF0AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A87C9D0A-EA8E-4568-B54D-7BEFBF6FF0AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A87C9D0A-EA8E-4568-B54D-7BEFBF6FF0AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9B4B970-107A-4331-AEEA-0CC5C766547D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9B4B970-107A-4331-AEEA-0CC5C766547D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9B4B970-107A-4331-AEEA-0CC5C766547D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9B4B970-107A-4331-AEEA-0CC5C766547D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7CBC8919-2116-4E66-A32A-9D47A34C6A76}
+	EndGlobalSection
+EndGlobal

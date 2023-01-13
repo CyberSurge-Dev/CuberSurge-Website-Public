@@ -1,0 +1,135 @@
+﻿@inject ILocalStorageService storage;
+
+<nav class="sidebar">
+    <form @onsubmit="search_update">
+        <div class="search-container">
+            <input @bind="SearhValue" class="bar" placeholder="Search"/>
+            <button class="icon"><i>  <img src="Images/search.png" /> </i></button>
+        </div>
+    </form>
+
+    <div class="tag-zone">
+        <span><p>Tag Filters</p></span>
+        <div class="tag-zone-zone">
+            <div class="tag-area">
+                @foreach (var tag in WebDB.Tags.Access.GetItems())
+                {
+                    @if (TagIDs.Contains(tag.id))
+                    {
+                        TempBools.TryAdd(tag.Tag, true);
+                        <div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag<SwitchButton @bind-Checked="@TempBools[tag.Tag]" Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+                    }
+                    else
+                    {
+                        <div class="blog-tag" style="background-color: @tag.Color;">@tag.Tag<SwitchButton Style="height: 15px;" OnCheckValue="()=>addTag(tag.id)" OnUncheckValue="()=>remTag(tag.id)" Inverted="true"></SwitchButton></div>
+                    }
+                }
+            </div>
+            
+        </div>
+    </div>
+     <div class="tag-zone">
+        <span><p>Date Filters</p></span>
+        <div class="tag-zone-zone">
+            <div class="tag-area">
+                <DateInput @bind-Value="StartDate" Style="width: 100%;"></DateInput>
+                <p>To</p>
+                <DateInput @bind-Value="EndDate" Style="width: 100%;"></DateInput>
+            </div>
+            
+        </div>
+    </div>
+    
+    <div class="button-zone">
+        <button @onclick="search_update" class="create-post" style="text-decoration: none; background: rgb(43, 83, 212);">
+            Update Filter
+            <i><img src="Images/Refresh.png" style="width: 25px;"/></i>
+    </button>
+
+    @if (isValidUser)
+    {
+        <a href="/Blog/Create" class="create-post" style="text-decoration: none; margin-top: 1%;">
+            Create Post
+            <i><img src="Images/add.svg" /></i>
+        </a>
+        <a href="/Blog/CreateTag" class="create-tag" style="text-decoration: none; margin-top: 1%;">
+            Create Tag
+            <i><img src="Images/add.svg" /></i>
+        </a>
+    }
+    </div>
+</nav>
+
+@code {
+
+    public static List<WebDB.Tags.Model> SelectedTags = new List<WebDB.Tags.Model>();
+
+    public static DateTime StartDate = (DateTime.Now).AddDays(-15);
+    public static  DateTime EndDate = (DateTime.Today).AddDays(1);
+
+    Dictionary<string, bool> TempBools = new Dictionary<string, bool>();
+    List<int> TagIDs = new List<int>();
+
+    public static string SearhValue = " ";
+
+    private void search_update()
+    {
+
+    }
+
+    private bool isValidUser;
+    protected override async Task OnInitializedAsync()
+    {
+
+        Console.WriteLine("\n\n\n\nOnInitializedAsync Called!!!! \n\n\n\n");
+
+        if (await Data.WebData.ValidateUser(storage))
+        {
+            var user = await Data.WebData.GetCurrentUser(storage);
+            if (user.IsAdmin == "true")
+            {
+                isValidUser = true;
+            }
+        }
+
+
+        foreach (var tag in WebDB.Tags.Access.GetItems())
+        {
+            TempBools.Add(tag.Tag, true);
+            TagIDs.Add(tag.id);
+            SelectedTags.Add(tag);
+        }
+
+    }
+
+    private void addTag(int tagID)
+    {
+        WebDB.Tags.Model Fitem;
+        foreach (var item in WebDB.Tags.Access.GetItems())
+        {
+            if (item.id == tagID)
+            {
+                Fitem = item;
+                SelectedTags.Add(Fitem);
+                Console.WriteLine("CurAdd: " + Fitem.Tag);
+                break;
+            }
+        }
+    }
+
+    private void remTag(int tagID)
+    {
+        WebDB.Tags.Model Fitem;
+        foreach (var item in SelectedTags)
+        {
+            if (item.id == tagID)
+            {
+                Console.WriteLine("ContainsItemBefRem:" + SelectedTags.Contains(item));
+                SelectedTags.Remove(item);
+                Console.WriteLine("RemItem: " + item.Tag);
+                Console.WriteLine("ContainsItem:" + SelectedTags.Contains(item));
+                break;
+            }
+        }
+    }
+}

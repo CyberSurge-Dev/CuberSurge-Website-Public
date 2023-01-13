@@ -1,0 +1,84 @@
+﻿
+
+.card {
+    border: none;
+    background-size: cover;
+    text-shadow: 5px black;
+    background-color: rgba(43, 43, 43, 0.2);
+    user-select: none;
+
+    transition: 0.3s ease 0s;
+}
+
+.card h1 {
+    text-align: left;
+    display: flex;
+    vertical-align: text-bottom;
+    margin: auto;
+    margin-bottom: 0;
+    margin-left: 0;
+}
+
+
+
+
+#Programmer {
+    background-image: url("Images/PROGRAMMER2.jpg");
+
+}
+
+#WebDev {
+    background-image: url("Images/webdev2.jpg");
+
+}
+
+#Engineer {
+    background-image: url("Images/Engineering.jpg");
+
+}
+
+#Student {
+    background-image: url("Images/student3.jpg");
+
+}
+
+.card:hover {
+    background-color: rgba(43, 43, 43, 0.9);
+    background-blend-mode: overlay;
+}
+.card:hover p {
+    transform: translate(0);
+}
+
+.card p {
+    transform: translate(-200vw);
+}
+
+@media (min-width: 960px) {
+    .content-box {
+        display: flex;
+        justify-content: space-between;
+        color: white;
+        width: 100%;
+        padding: 5px 3%;
+    }
+        .content-box div {
+            width: 24%;
+            min-height: 200px;
+        }
+}
+
+@media (max-width: 960px) {
+    .content-box {
+        color: white;
+        width: 100%;
+        padding: 5px 3%;
+    }
+
+        .content-box div {
+            margin-top: 5%;
+            width: 100%;
+            min-height: 200px;
+        }
+
+}
